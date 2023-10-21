@@ -1,0 +1,11 @@
+*.py[co]
+/*.egg-info
+/build
+/dist
+/tracdragdrop/htdocs/messages/ja.js
+/tracdragdrop/htdocs/messages/es.js
+/tracdragdrop/htdocs/messages/ca.js
+/tracdragdrop/locale/ca/LC_MESSAGES/tracdragdrop-js.mo
+/tracdragdrop/locale/es/LC_MESSAGES/tracdragdrop-js.mo
+/tracdragdrop/locale/ja/LC_MESSAGES/tracdragdrop-js.mo
+/tracdragdrop/locale/ja/LC_MESSAGES/tracdragdrop.mo
