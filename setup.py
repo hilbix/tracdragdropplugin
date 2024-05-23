@@ -19,7 +19,7 @@ def main():
 
     setup(
         name = 'TracDragDrop',
-        version = '0.12.0.17',
+        version = '0.12.0.18',
         description = 'Add drag-and-drop attachments feature to Trac',
         license = 'BSD', # the same as Trac
         url = 'https://trac-hacks.org/wiki/TracDragDropPlugin',
