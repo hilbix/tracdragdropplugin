@@ -848,12 +848,9 @@ jQuery(document).ready(function($) {
                     url: url + '/' + encodeURIComponent(newname),
                     type: 'POST',
                     data: '__FORM_TOKEN=' + form_token,
-                    success: function() {
-                        console.error({item,dropdown});
-/*
+                    success: function(data) {
                         dropdown.appendTo(document.body);
-                        item.add(item.next('dd')).remove();
-*/
+                        refreshAttachmentsList(data);
                     },
                     error: function(xhr, status, error) {
                         alert(xhr.responseText || status);
