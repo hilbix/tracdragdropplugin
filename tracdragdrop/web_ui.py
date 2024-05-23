@@ -23,6 +23,8 @@ from trac.web.chrome import Chrome, ITemplateProvider, add_stylesheet, \
 from trac.util.text import to_unicode, unicode_unquote
 from trac.util.translation import domain_functions, dgettext
 
+from trac.resource import *
+
 if hasattr(inspect, 'getfullargspec'):
     getargspec = inspect.getfullargspec
 else:
@@ -313,7 +315,8 @@ class TracDragDropModule(Component):
 
     def _render_attachments(self, req):
         realm = req.args['realm']
-        path = req.args['path']
+        path = req.args['path'].split('/',1)[0]
+
         attachments = list(self._select_attachments(realm, path))
         data = {}
         data['alist'] = {
@@ -363,6 +366,7 @@ class TracDragDropModule(Component):
             self._wtf_reinvent_rename(AttachmentModule(self.env), req)
         except RedirectListened:
             req.send(binary_type(), status=200)
+        return self._render_attachments(req)
 
     def _wtf_reinvent_rename(self, module, req):
         parent_realm = req.args.get('realm')
@@ -386,7 +390,7 @@ class TracDragDropModule(Component):
             last_slash = parent_id.rfind('/')
             if last_slash == -1:
                 raise HTTPBadRequest(_("Bad request"))
-            parent_id, filename = path[:last_slash], path[last_slash + 1:]
+            parent_id, filename = parent_id[:last_slash], parent_id[last_slash + 1:]
 
         parent = parent_realm(id=parent_id)
         if not resource_exists(self.env, parent):
@@ -397,9 +401,9 @@ class TracDragDropModule(Component):
         # Link the attachment page to parent resource
         parent_name = get_resource_name(self.env, parent)
         parent_url = get_resource_url(self.env, parent, req.href)
-        add_link(req, 'up', parent_url, parent_name)
-        add_ctxtnav(req, _("Back to %(parent)s", parent=parent_name),
-                    parent_url)
+#        add_link(req, 'up', parent_url, parent_name)
+#        add_ctxtnav(req, _("Back to %(parent)s", parent=parent_name),
+#                    parent_url)
 
         if not filename:  # there's a trailing '/'
             raise HTTPBadRequest(_("Bad request"))	# WTF revinvent: must not happen here
@@ -408,7 +412,7 @@ class TracDragDropModule(Component):
 #            elif action != 'new':
 #                return self._render_list(req, parent)
 
-        attachment = Attachment(self.env, parent.child(self.realm, filename))
+        attachment = Attachment(self.env, parent.child('attachment', filename))
 
         if req.method == 'POST':
 #            if action == 'new':
@@ -416,7 +420,7 @@ class TracDragDropModule(Component):
 #            elif action == 'delete':
 #                self._do_delete(req, attachment)
             if action == 'rename':
-                self._wtf_reinvent_do_rename(req, attachment, new_name)
+                data = self._wtf_reinvent_do_rename(req, attachment, new_name)
             else:
                 raise HTTPBadRequest(_("Invalid request arguments."))
         else: raise HTTPBadRequest(_("Invalid request arguments."))	# WTF reinvent: must not happen here
@@ -426,16 +430,16 @@ class TracDragDropModule(Component):
 #            data = self._render_form(req, attachment)
 #        else:
 #            data = self._render_view(req, attachment)
-
-        add_stylesheet(req, 'common/css/code.css')
-        return 'attachment.html', data
+#
+#        add_stylesheet(req, 'common/css/code.css')
+#        return 'attachment.html', data
 
     def _wtf_reinvent_do_rename(self, req, attachment, new_name):
         req.perm(attachment.resource).require('ATTACHMENT_DELETE')
         parent_href = get_resource_url(self.env, attachment.resource.parent, req.href)
         if 'cancel' not in req.args:
             attachment.move(attachment.parent_realm, attachment.parent_id, new_name)
-        req.redirect(parent_href)
+#        req.redirect(parent_href)
 
 
 class PseudoAttachmentObject(object):
