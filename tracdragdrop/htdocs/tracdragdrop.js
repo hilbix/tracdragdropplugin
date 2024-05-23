@@ -785,7 +785,7 @@ jQuery(document).ready(function($) {
             var url = $(rawlink).attr('href').replace(stripHostRegexp, '');
             var base_url = tracdragdrop.base_url
             var length = (base_url + 'raw-attachment/').length;
-            return base_url + 'tracdragdrop/delete/' + url.substring(length);
+            return base_url + 'tracdragdrop/' + action + '/' + url.substring(length);
         }
         function showIcon(item, rawlink) {
             var filename = getFilename(rawlink);
@@ -799,9 +799,9 @@ jQuery(document).ready(function($) {
             $('<input type="text" readonly="readonly" size="30" />')
             .click(function() { this.select() });
         fields.macro = fields.traclink.clone(true);
-        del = $('<div  />').append($('<strong />').text('\u00d7\u00a0'),
-                                   textNode(_("Delete attachment")))
-                           .click(function() {
+        del = $('<div />').append($('<strong />').text('\u00d7\u00a0'),
+                                  textNode(_("Delete attachment")))
+                          .click(function() {
             var item = $(this).parents('dt, li');
             var rawlink = item.find('a.trac-rawlink');
             var filename = getFilename(rawlink);
@@ -832,6 +832,34 @@ jQuery(document).ready(function($) {
             }
             menu.hide();
         });
+        move = $('<div />').append($('<strong />').text('\u270e\u00a0'),
+                                   textNode(_("Rename attachment")))
+                           .click(function() {
+            var item = $(this).parents('dt, li');
+            var rawlink = item.find('a.trac-rawlink');
+            var filename = getFilename(rawlink);
+            var message = babel.format(
+                _("Rename attachment '%(name)s' to"),
+                {name: filename});
+            if (prompt(message, filename)) {
+                var url = getUrl(rawlink, 'rename');
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: '__FORM_TOKEN=' + form_token,
+                    success: function() {
+                        console.error({item,dropdown});
+/*
+                        dropdown.appendTo(document.body);
+                        item.add(item.next('dd')).remove();
+*/
+                    },
+                    error: function(xhr, status, error) {
+                        alert(xhr.responseText || status);
+                    }
+                });
+            }
+        });
         menu = $.htmlFormat([
             '<table>',
             ' <tbody>',
@@ -845,6 +873,7 @@ jQuery(document).ready(function($) {
             '  </tr>',
             '  <tr class="tracdragdrop-menuitem">',
             '   <td colspan="2" class="tracdragdrop-delete"></td>',
+            '   <td colspan="2" class="tracdragdrop-rename"></td>',
             '  </tr>',
             ' </tbody>',
             '</table>'].join(''), _("TracLink"), _("Image macro"));
@@ -853,6 +882,7 @@ jQuery(document).ready(function($) {
         menu.find('.tracdragdrop-traclink').append(fields.traclink);
         menu.find('.tracdragdrop-macro').append(fields.macro);
         menu.find('.tracdragdrop-delete').append(del);
+        menu.find('.tracdragdrop-rename').append(move);
         menu.hide();
         menu.find('tr').bind('mouseenter', function() {
             $(this).find('input[type=text]').each(function() { this.click() });
