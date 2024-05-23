@@ -874,6 +874,8 @@ jQuery(document).ready(function($) {
             '  </tr>',
             '  <tr class="tracdragdrop-menuitem">',
             '   <td colspan="2" class="tracdragdrop-delete"></td>',
+            '  </tr>',
+            '  <tr class="tracdragdrop-menuitem">',
             '   <td colspan="2" class="tracdragdrop-rename"></td>',
             '  </tr>',
             ' </tbody>',
