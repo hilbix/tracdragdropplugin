@@ -364,7 +364,7 @@ class TracDragDropModule(Component):
         except RedirectListened:
             req.send(binary_type(), status=200)
 
-    def _wft_reinvent_rename(self, module, req):
+    def _wtf_reinvent_rename(self, module, req):
         parent_realm = req.args.get('realm')
         path = req.args.get('path')
 
@@ -416,7 +416,7 @@ class TracDragDropModule(Component):
 #            elif action == 'delete':
 #                self._do_delete(req, attachment)
             if action == 'rename':
-                self._wft_reinvent_do_rename(req, attachment, new_name)
+                self._wtf_reinvent_do_rename(req, attachment, new_name)
             else:
                 raise HTTPBadRequest(_("Invalid request arguments."))
         else: raise HTTPBadRequest(_("Invalid request arguments."))	# WTF reinvent: must not happen here
@@ -430,7 +430,7 @@ class TracDragDropModule(Component):
         add_stylesheet(req, 'common/css/code.css')
         return 'attachment.html', data
 
-    def _wft_reinvent_do_rename(self, req, attachment, new_name):
+    def _wtf_reinvent_do_rename(self, req, attachment, new_name):
         req.perm(attachment.resource).require('ATTACHMENT_DELETE')
         parent_href = get_resource_url(self.env, attachment.resource.parent, req.href)
         if 'cancel' not in req.args:
