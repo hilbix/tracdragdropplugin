@@ -419,7 +419,7 @@ class TracDragDropModule(Component):
                 self._wft_reinvent_do_rename(req, attachment, new_name)
             else:
                 raise HTTPBadRequest(_("Invalid request arguments."))
-         else: raise HTTPBadRequest(_("Invalid request arguments."))	# WTF reinvent: must not happen here
+        else: raise HTTPBadRequest(_("Invalid request arguments."))	# WTF reinvent: must not happen here
 #        elif action == 'delete':
 #            data = self._render_confirm_delete(req, attachment)
 #        elif action == 'new':
