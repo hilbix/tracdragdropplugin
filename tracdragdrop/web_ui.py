@@ -258,6 +258,8 @@ class TracDragDropModule(Component):
                     return self._delegate_new_request(req)
                 if action == 'delete':
                     return self._delegate_delete_request(req)
+                if action == 'rename':
+                    return self._delegate_rename_request(req)
 
             raise TracError('Invalid request')
 
@@ -353,6 +355,88 @@ class TracDragDropModule(Component):
     def _is_xhr(self, req):
         return req.get_header('X-Requested-With') == 'XMLHttpRequest'
 
+    # Unfortunately we have to re-invent the wheel here
+    # as renaming is NOT implemented in AttachmentModule.proces_request
+
+    def _delegate_rename_request(self, req):
+        try:
+            self._wtf_reinvent_rename(AttachmentModule(self.env), req)
+        except RedirectListened:
+            req.send(binary_type(), status=200)
+
+    def _wft_reinvent_rename(self, module, req):
+        parent_realm = req.args.get('realm')
+        path = req.args.get('path')
+
+        if not parent_realm or not path:
+            raise HTTPBadRequest(_("Bad request"))
+        if parent_realm == 'attachment':
+            raise TracError(tag_("%(realm)s is not a valid parent realm",
+                                 realm=tag.code(parent_realm)))
+
+        parent_realm = Resource(parent_realm)
+        action = req.args.get('action', 'view')
+        if action != 'rename':
+            raise HTTPBadRequest(_("Bad request"))
+        else:
+            last_slash = path.rfind('/')
+            if last_slash == -1:
+                raise HTTPBadRequest(_("Bad request"))
+            parent_id, new_name = path[:last_slash], path[last_slash + 1:]
+            last_slash = parent_id.rfind('/')
+            if last_slash == -1:
+                raise HTTPBadRequest(_("Bad request"))
+            parent_id, filename = path[:last_slash], path[last_slash + 1:]
+
+        parent = parent_realm(id=parent_id)
+        if not resource_exists(self.env, parent):
+            raise ResourceNotFound(
+                _("Parent resource %(parent)s doesn't exist",
+                  parent=get_resource_name(self.env, parent)))
+
+        # Link the attachment page to parent resource
+        parent_name = get_resource_name(self.env, parent)
+        parent_url = get_resource_url(self.env, parent, req.href)
+        add_link(req, 'up', parent_url, parent_name)
+        add_ctxtnav(req, _("Back to %(parent)s", parent=parent_name),
+                    parent_url)
+
+        if not filename:  # there's a trailing '/'
+            raise HTTPBadRequest(_("Bad request"))	# WTF revinvent: must not happen here
+#            if req.args.get('format') == 'zip':
+#                self._download_as_zip(req, parent)
+#            elif action != 'new':
+#                return self._render_list(req, parent)
+
+        attachment = Attachment(self.env, parent.child(self.realm, filename))
+
+        if req.method == 'POST':
+#            if action == 'new':
+#                data = self._do_save(req, attachment)
+#            elif action == 'delete':
+#                self._do_delete(req, attachment)
+            if action == 'rename':
+                self._wft_reinvent_do_rename(req, attachment, new_name)
+            else:
+                raise HTTPBadRequest(_("Invalid request arguments."))
+         else: raise HTTPBadRequest(_("Invalid request arguments."))	# WTF reinvent: must not happen here
+#        elif action == 'delete':
+#            data = self._render_confirm_delete(req, attachment)
+#        elif action == 'new':
+#            data = self._render_form(req, attachment)
+#        else:
+#            data = self._render_view(req, attachment)
+
+        add_stylesheet(req, 'common/css/code.css')
+        return 'attachment.html', data
+
+    def _wft_reinvent_do_rename(self, req, attachment, new_name):
+        req.perm(attachment.resource).require('ATTACHMENT_DELETE')
+        parent_href = get_resource_url(self.env, attachment.resource.parent, req.href)
+        if 'cancel' not in req.args:
+            attachment.move(attachment.parent_realm, attachment.parent_id, new_name)
+        req.redirect(parent_href)
+
 
 class PseudoAttachmentObject(object):
 
@@ -420,3 +504,4 @@ class PseudoAttachmentObject(object):
 
 class RedirectListened(Exception):
     pass
+
