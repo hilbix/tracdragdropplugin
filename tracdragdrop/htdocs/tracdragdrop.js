@@ -841,10 +841,11 @@ jQuery(document).ready(function($) {
             var message = babel.format(
                 _("Rename attachment '%(name)s' to"),
                 {name: filename});
-            if (prompt(message, filename)) {
+            var newname;
+            if (newname = prompt(message, filename)) {
                 var url = getUrl(rawlink, 'rename');
                 $.ajax({
-                    url: url,
+                    url: url + '/' + encodeURIComponent(newname),
                     type: 'POST',
                     data: '__FORM_TOKEN=' + form_token,
                     success: function() {
